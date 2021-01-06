@@ -36,8 +36,3 @@ class Server:
             #    break
             data = conn_stream.recv(1024)
         # finished with client
-
-
-if __name__ == '__main__':
-    message_u = Server()
-    message_u.start()
