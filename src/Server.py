@@ -1,6 +1,7 @@
 import socket
 import selectors
 import struct
+import uuid
 from src.User import User
 
 
@@ -38,6 +39,7 @@ class Server:
 
                 # Return users list
                 if code == 101:
+                    uid = uuid.UUID(bytes=client_id)
 
                     pass
                 # Public key
