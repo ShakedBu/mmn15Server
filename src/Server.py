@@ -40,6 +40,7 @@ class Server:
                 # Return users list
                 if code == 101:
                     uid = uuid.UUID(bytes=client_id)
+                    # TODO: Check if there is such user and get him a list
 
                     pass
                 # Public key
