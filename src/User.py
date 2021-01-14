@@ -4,7 +4,7 @@ from src.Message import Message
 
 
 class User:
-    def __init__(self, connection, name, u_id=None, public_key=None, last_seen=None):
+    def __init__(self, connection, name, public_key=None, u_id=None, last_seen=None):
         self.connection = connection
         if u_id is None:
             u_id = uuid.uuid1()

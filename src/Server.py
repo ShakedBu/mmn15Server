@@ -61,6 +61,7 @@ class Server:
                         elif code == 102:
                             other_user_uid = uuid.UUID(bytes=payload)
 
+                            # TODO: add exception
                             if other_user_uid in self.users:
                                 other_user = self.users[other_user_uid]
                                 response = struct.pack("B H I 16s 32s", self.version, 1002, other_user_uid.bytes,
@@ -74,6 +75,7 @@ class Server:
                             other_client_id, m_type, m_size, m_content = struct.unpack(format_s, payload)
                             other_user_uid = uuid.UUID(bytes=other_client_id)
 
+                            # TODO: add exception
                             if other_user_uid in self.users:
                                 other_user = self.users[other_user_uid]
                                 message_id = other_user.add_message(curr_uid, m_type, m_size, m_content)
