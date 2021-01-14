@@ -25,3 +25,9 @@ class User:
         new_message = Message(sender, self.id, message_type, size, message)
         self.messages.append(new_message)
         return new_message.id
+
+    def get_waiting_messages_bytes(self):
+        m_list = b""
+        for message in self.messages:
+            m_list = b"".join(m_list, message.get_message_bytes())
+        return m_list

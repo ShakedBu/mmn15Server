@@ -46,45 +46,49 @@ class Server:
                         print(response)
                         conn.send(response)
 
-                    # Return users list
-                    if code == 101:
-                        payload = b""
-                        for user in self.users:
-                            # TODO: don't return current user- just for making testing easy
-                            # if user != curr_uid:
-                            payload = b"".join([payload, self.users[user].get_user_bytes()])
-                        format_s = 'B H I {}s'.format(len(payload))
-                        response = struct.pack(format_s, self.version, 1001, len(payload), payload)
-                        print(response)
-                        conn.send(response)
-
-                    # Public key
-                    elif code == 102:
-                        other_user_uid = uuid.UUID(bytes=payload)
-
-                        if other_user_uid in self.users:
-                            other_user = self.users[other_user_uid]
-                            response = struct.pack("B H I 16s 32s", self.version, 1002, other_user_uid.bytes,
-                                                   other_user.get_public_key())
-                            print(response)
+                    else:
+                        # Return users list
+                        if code == 101:
+                            payload = b""
+                            for user in self.users:
+                                if user != curr_uid:
+                                    payload = b"".join([payload, self.users[user].get_user_bytes()])
+                            format_s = 'B H I {}s'.format(len(payload))
+                            response = struct.pack(format_s, self.version, 1001, len(payload), payload)
                             conn.send(response)
 
-                    # Send message
-                    elif code == 103:
-                        format_s = "16s B I {}s".format(size - 21)
-                        other_client_id, m_type, m_size, m_content = struct.unpack(format_s, payload)
-                        other_user_uid = uuid.UUID(bytes=other_client_id)
+                        # Public key
+                        elif code == 102:
+                            other_user_uid = uuid.UUID(bytes=payload)
 
-                        if other_user_uid in self.users:
-                            other_user = self.users[other_user_uid]
-                            message_id = other_user.add_message(client_id, m_type, m_size, m_content)
-                            response = struct.pack("B H I I", self.version, 1004, 4, message_id)
+                            if other_user_uid in self.users:
+                                other_user = self.users[other_user_uid]
+                                response = struct.pack("B H I 16s 32s", self.version, 1002, other_user_uid.bytes,
+                                                       other_user.get_public_key())
+                                print(response)
+                                conn.send(response)
+
+                        # Send message
+                        elif code == 103:
+                            format_s = "16s B I {}s".format(size - 21)
+                            other_client_id, m_type, m_size, m_content = struct.unpack(format_s, payload)
+                            other_user_uid = uuid.UUID(bytes=other_client_id)
+
+                            if other_user_uid in self.users:
+                                other_user = self.users[other_user_uid]
+                                message_id = other_user.add_message(curr_uid, m_type, m_size, m_content)
+                                response = struct.pack("B H I I", self.version, 1004, 4, message_id)
+                                print(response)
+                                conn.send(response)
+
+                        # Return waiting messages
+                        elif code == 104:
+                            user = self.users[curr_uid]
+                            payload = user.get_waiting_messages_bytes()
+                            format_s = "B H I {}s".format(len(payload))
+                            response = struct.pack(format_s, self.version, 1003, len(payload), payload)
                             print(response)
                             conn.send(response)
-
-                    # Return waiting messages
-                    elif code == 104:
-                        pass
 
             else:
                 self.selector.unregister(conn)
