@@ -61,22 +61,26 @@ class Server:
                     # Public key
                     elif code == 102:
                         other_user_uid = uuid.UUID(bytes=payload)
-                        other_user = self.users[other_user_uid]
-                        response = struct.pack("B H I 16s 32s", self.version, 1002, other_user_uid.bytes,
-                                               other_user.get_public_key())
-                        print(response)
-                        conn.send(response)
+
+                        if other_user_uid in self.users:
+                            other_user = self.users[other_user_uid]
+                            response = struct.pack("B H I 16s 32s", self.version, 1002, other_user_uid.bytes,
+                                                   other_user.get_public_key())
+                            print(response)
+                            conn.send(response)
 
                     # Send message
                     elif code == 103:
                         format_s = "16s B I {}s".format(size - 21)
                         other_client_id, m_type, m_size, m_content = struct.unpack(format_s, payload)
                         other_user_uid = uuid.UUID(bytes=other_client_id)
-                        other_user = self.users[other_user_uid]
-                        message_id = other_user.add_message(client_id, m_type, m_size, m_content)
-                        response = struct.pack("B H I I", self.version, 1004, 4, message_id)
-                        print(response)
-                        conn.send(response)
+
+                        if other_user_uid in self.users:
+                            other_user = self.users[other_user_uid]
+                            message_id = other_user.add_message(client_id, m_type, m_size, m_content)
+                            response = struct.pack("B H I I", self.version, 1004, 4, message_id)
+                            print(response)
+                            conn.send(response)
 
                     # Return waiting messages
                     elif code == 104:
