@@ -13,6 +13,7 @@ class Server:
             self.port = int(line)
         self.host = '127.0.0.1'
         self.selector = selectors.DefaultSelector()
+        self.version = 1
         self.users = {}
 
     def accept(self, sock, mask):
@@ -32,7 +33,7 @@ class Server:
                 if code == 100:
                     new_user = User(conn, str(payload, 'utf-8'))
                     self.users[new_user.id] = new_user
-                    response = struct.pack('B H I 16s', 1, 1000, 16, new_user.id.bytes)
+                    response = struct.pack('B H I 16s', self.version, 1000, 16, new_user.id.bytes)
                     conn.send(response)
 
                 else:
@@ -41,7 +42,7 @@ class Server:
 
                     # User not registered - return an error
                     if curr_uid not in self.users:
-                        response = struct.pack('B H I', 1, 9000, 0)
+                        response = struct.pack('B H I', self.version, 9000, 0)
                         print(response)
                         conn.send(response)
 
@@ -53,16 +54,30 @@ class Server:
                             # if user != curr_uid:
                             payload = b"".join([payload, self.users[user].get_user_bytes()])
                         format_s = 'B H I {}s'.format(len(payload))
-                        response = struct.pack(format_s, 1, 1001, len(payload), payload)
+                        response = struct.pack(format_s, self.version, 1001, len(payload), payload)
                         print(response)
                         conn.send(response)
 
                     # Public key
                     elif code == 102:
-                        pass
+                        other_user_uid = uuid.UUID(bytes=payload)
+                        other_user = self.users[other_user_uid]
+                        response = struct.pack("B H I 16s 32s", self.version, 1002, other_user_uid.bytes,
+                                               other_user.get_public_key())
+                        print(response)
+                        conn.send(response)
+
                     # Send message
                     elif code == 103:
-                        pass
+                        format_s = "16s B I {}s".format(size - 21)
+                        other_client_id, m_type, m_size, m_content = struct.unpack(format_s, payload)
+                        other_user_uid = uuid.UUID(bytes=other_client_id)
+                        other_user = self.users[other_user_uid]
+                        message_id = other_user.add_message(client_id, m_type, m_size, m_content)
+                        response = struct.pack("B H I I", self.version, 1004, 4, message_id)
+                        print(response)
+                        conn.send(response)
+
                     # Return waiting messages
                     elif code == 104:
                         pass

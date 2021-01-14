@@ -1,5 +1,6 @@
 import uuid
 import struct
+from src.Message import Message
 
 
 class User:
@@ -11,8 +12,16 @@ class User:
         self.id = u_id
         self.public_key = public_key
         self.last_seen = last_seen
+        self.messages = []
 
     def get_user_bytes(self):
-        # TODO: this will probably wont work
         user = struct.pack('16s 255s', self.id.bytes, bytes(self.name.ljust(255), 'utf-8'))
         return user
+
+    def get_public_key(self):
+        return self.public_key
+
+    def add_message(self, sender, message_type, size, message):
+        new_message = Message(sender, self.id, message_type, size, message)
+        self.messages.append(new_message)
+        return new_message.id
