@@ -4,8 +4,7 @@ from src.Message import Message
 
 
 class User:
-    def __init__(self, connection, name, public_key=None, u_id=None, last_seen=None):
-        self.connection = connection
+    def __init__(self, name, public_key=None, u_id=None, last_seen=None):
         if u_id is None:
             u_id = uuid.uuid1()
         self.name = name
@@ -15,7 +14,7 @@ class User:
         self.messages = []
 
     def get_user_bytes(self):
-        user = struct.pack('16s 255s', self.id.bytes, bytes(self.name.ljust(255), 'utf-8'))
+        user = struct.pack('16s 255s', self.id.bytes, bytes(self.name.ljust(255, '\0'), 'utf-8'))
         return user
 
     def get_public_key(self):
