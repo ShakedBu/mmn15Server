@@ -47,6 +47,7 @@ class Server:
                         # Return users list
                         if code == 101:
                             response = self.client_list(curr_uid)
+                            print(response)
                             conn.send(response)
 
                         # Public key
@@ -60,6 +61,7 @@ class Server:
                             other_client_id, m_type, m_size, m_content = struct.unpack(format_s, payload)
                             response = self.send_message(curr_uid, uuid.UUID(bytes=other_client_id),
                                                          m_type, m_size, m_content)
+                            print(response)
                             conn.send(response)
 
                         # Return waiting messages
@@ -91,13 +93,13 @@ class Server:
 
     def register(self, user_name):
         # Check there is no user with same name
-        for user in self.users:
-            if user.name == user:
+        for user in self.users.values():
+            if user.name == user_name:
                 return self.error_response
 
         new_user = User(user_name)
         self.users[new_user.id] = new_user
-        return struct.pack('B H I 16s', self.version, 1000, 16, new_user.id)
+        return struct.pack('B H I 16s', self.version, 1000, 16, new_user.id.bytes)
 
     def client_list(self, requesting_user):
         payload = b""
@@ -117,6 +119,7 @@ class Server:
     def waiting_messages(self, requesting_user_uid):
         user = self.users[requesting_user_uid]
         payload = user.get_waiting_messages_bytes()
+        user.remove_waiting_messages()
         format_s = "B H I {}s".format(len(payload))
         return struct.pack(format_s, self.version, 1003, len(payload), payload)
 

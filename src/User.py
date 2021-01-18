@@ -30,3 +30,6 @@ class User:
         for message in self.messages:
             m_list = b"".join(m_list, message.get_message_bytes())
         return m_list
+
+    def remove_waiting_messages(self):
+        self.messages.clear()
