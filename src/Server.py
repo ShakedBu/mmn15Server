@@ -47,7 +47,6 @@ class Server:
                         # Return users list
                         if code == 101:
                             response = self.client_list(curr_uid)
-                            print(response)
                             conn.send(response)
 
                         # Public key
@@ -57,7 +56,7 @@ class Server:
 
                         # Send message
                         elif code == 103:
-                            format_s = "16s B I {}s".format(size - 21)
+                            format_s = "<16s B I {}s".format(len(payload) - 21)
                             other_client_id, m_type, m_size, m_content = struct.unpack(format_s, payload)
                             response = self.send_message(curr_uid, uuid.UUID(bytes=other_client_id),
                                                          m_type, m_size, m_content)
@@ -67,6 +66,7 @@ class Server:
                         # Return waiting messages
                         elif code == 104:
                             response = self.waiting_messages(curr_uid)
+                            print(response)
                             conn.send(response)
 
             else:
@@ -114,19 +114,20 @@ class Server:
             return self.error_response
 
         other_user = self.users[user_uid]
-        return struct.pack("B H I 16s 32s", self.version, 1002, user_uid.bytes, other_user.get_public_key())
+        return struct.pack("B H I 16s 32s", self.version, 1002, 48, user_uid.bytes,
+                           bytes(other_user.public_key, 'utf-8'))
 
     def waiting_messages(self, requesting_user_uid):
         user = self.users[requesting_user_uid]
         payload = user.get_waiting_messages_bytes()
         user.remove_waiting_messages()
         format_s = "B H I {}s".format(len(payload))
-        return struct.pack(format_s, self.version, 1003, len(payload), payload)
+        return struct.pack(format_s, self.version, 1004, len(payload), payload)
 
     def send_message(self, from_user_uid, to_user_uid, m_type, m_size, m_content):
         if to_user_uid not in self.users:
             return self.error_response
 
         other_user = self.users[to_user_uid]
-        message_id = other_user.add_message(from_user_uid, m_type, m_size, m_content)
-        return struct.pack("B H I I", self.version, 1004, 4, message_id)
+        message_id = other_user.add_message(from_user_uid, m_type, m_size, str(m_content, 'utf-8'))
+        return struct.pack("B H I 16s I", self.version, 1003, 20, to_user_uid.bytes, message_id)
