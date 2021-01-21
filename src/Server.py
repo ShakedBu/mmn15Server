@@ -129,5 +129,5 @@ class Server:
             return self.error_response
 
         other_user = self.users[to_user_uid]
-        message_id = other_user.add_message(from_user_uid, m_type, m_size, str(m_content, 'utf-8'))
+        message_id = other_user.add_message(from_user_uid, m_type, m_size, m_content)
         return struct.pack("B H I 16s I", self.version, 1003, 20, to_user_uid.bytes, message_id)

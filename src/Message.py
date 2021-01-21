@@ -13,6 +13,5 @@ class Message:
 
     def get_message_bytes(self):
         format_s = "16s I B I {}s".format(self.size)
-        message = struct.pack(format_s, self.from_client.bytes, self.id, self.type, self.size,
-                              bytes(self.content, 'utf-8'))
+        message = struct.pack(format_s, self.from_client.bytes, self.id, self.type, self.size, self.content)
         return message
