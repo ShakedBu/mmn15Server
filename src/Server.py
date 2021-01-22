@@ -32,7 +32,9 @@ class Server:
 
                 # Register new User
                 if code == 100:
-                    response = self.register(str(payload, 'utf-8'))
+                    format_s = "{}s 32s".format(len(payload) - 32)
+                    user, p_key = struct.unpack(format_s, payload)
+                    response = self.register(str(user, 'utf-8'), p_key)
                     conn.send(response)
 
                 else:
@@ -91,13 +93,13 @@ class Server:
 
                 callback(key.fileobj, mask)
 
-    def register(self, user_name):
+    def register(self, user_name, public_key):
         # Check there is no user with same name
         for user in self.users.values():
             if user.name == user_name:
                 return self.error_response
 
-        new_user = User(user_name)
+        new_user = User(user_name, public_key)
         self.users[new_user.id] = new_user
         return struct.pack('B H I 16s', self.version, 1000, 16, new_user.id.bytes)
 
@@ -114,8 +116,7 @@ class Server:
             return self.error_response
 
         other_user = self.users[user_uid]
-        return struct.pack("B H I 16s 32s", self.version, 1002, 48, user_uid.bytes,
-                           bytes(other_user.public_key, 'utf-8'))
+        return struct.pack("B H I 16s 32s", self.version, 1002, 48, user_uid.bytes, other_user.public_key)
 
     def waiting_messages(self, requesting_user_uid):
         user = self.users[requesting_user_uid]
