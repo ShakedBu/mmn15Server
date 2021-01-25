@@ -62,13 +62,11 @@ class Server:
                             other_client_id, m_type, m_size, m_content = struct.unpack(format_s, payload)
                             response = self.send_message(curr_uid, uuid.UUID(bytes=other_client_id),
                                                          m_type, m_size, m_content)
-                            print(response)
                             conn.send(response)
 
                         # Return waiting messages
                         elif code == 104:
                             response = self.waiting_messages(curr_uid)
-                            print(response)
                             conn.send(response)
 
             else:
