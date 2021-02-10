@@ -32,7 +32,7 @@ class Server:
 
                 # Register new User
                 if code == 100:
-                    format_s = "{}s 32s".format(len(payload) - 32)
+                    format_s = "{}s 160s".format(len(payload) - 160)
                     user, p_key = struct.unpack(format_s, payload)
                     response = self.register(str(user, 'utf-8'), p_key)
                     conn.send(response)
@@ -114,7 +114,7 @@ class Server:
             return self.error_response
 
         other_user = self.users[user_uid]
-        return struct.pack("B H I 16s 32s", self.version, 1002, 48, user_uid.bytes, other_user.public_key)
+        return struct.pack("B H I 16s 160s", self.version, 1002, 176, user_uid.bytes, other_user.public_key)
 
     def waiting_messages(self, requesting_user_uid):
         user = self.users[requesting_user_uid]

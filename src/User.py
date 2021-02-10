@@ -4,7 +4,7 @@ from src.Message import Message
 
 
 class User:
-    def __init__(self, name, public_key="".ljust(32, '\0'), u_id=None, last_seen=None):
+    def __init__(self, name, public_key, u_id=None, last_seen=None):
         if u_id is None:
             u_id = uuid.uuid1()
         self.name = name
