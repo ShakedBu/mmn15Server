@@ -40,6 +40,7 @@ def create_messages_tab():
 
 
 def save_user_to_db(uid, name, public_key):
+    # Add user to db
     last_seen = datetime.now()
     conn = get_db()
     clients_table = """ INSERT INTO clients VALUES (?, ?, ?, ?); """
@@ -49,6 +50,7 @@ def save_user_to_db(uid, name, public_key):
 
 
 def save_message_to_db(mid, to_client, from_client, m_type, content):
+    # Add message to db
     conn = get_db()
     messages_table = """ INSERT INTO messages VALUES (?, ?, ?, ?, ?); """
     conn.execute(messages_table, [mid, to_client.hex, from_client.hex, m_type, content])
@@ -57,6 +59,7 @@ def save_message_to_db(mid, to_client, from_client, m_type, content):
 
 
 def update_last_seen(uid):
+    # update user last seen
     last_seen = datetime.now()
     conn = get_db()
     clients_table = """ UPDATE clients SET last_seen = ? WHERE id = ? """
