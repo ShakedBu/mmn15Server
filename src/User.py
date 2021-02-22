@@ -12,13 +12,15 @@ class User:
         self.public_key = public_key
         self.last_seen = last_seen
         self.messages = []
+        self.next_message_id = 1
 
     def get_user_bytes(self):
         user = struct.pack('16s 255s', self.id.bytes, bytes(self.name.ljust(255, '\0'), 'utf-8'))
         return user
 
     def add_message(self, sender, message_type, size, message):
-        new_message = Message(len(self.messages), self.id, sender, message_type, size, message)
+        new_message = Message(self.next_message_id, self.id, sender, message_type, size, message)
+        self.next_message_id += 1
         self.messages.append(new_message)
         return new_message.id
 

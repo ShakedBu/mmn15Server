@@ -4,6 +4,7 @@ import struct
 import uuid
 import sys
 from src.User import User
+from src.DBHandler import get_db, create_users_tab, create_messages_tab, save_user_to_db, save_message_to_db
 
 
 class Server:
@@ -13,7 +14,10 @@ class Server:
             self.port = int(line)
         self.host = '127.0.0.1'
         self.selector = selectors.DefaultSelector()
-        self.version = 1
+        self.version = 2
+        self.db = get_db()
+        create_users_tab()
+        create_messages_tab()
         self.users = {}
         self.error_response = struct.pack('B H I', self.version, 9000, 0)
 
@@ -99,6 +103,7 @@ class Server:
 
         new_user = User(user_name, public_key)
         self.users[new_user.id] = new_user
+        save_user_to_db(new_user.id, user_name, public_key)
         return struct.pack('B H I 16s', self.version, 1000, 16, new_user.id.bytes)
 
     def client_list(self, requesting_user):
@@ -129,4 +134,5 @@ class Server:
 
         other_user = self.users[to_user_uid]
         message_id = other_user.add_message(from_user_uid, m_type, m_size, m_content)
+        save_message_to_db(message_id, other_user.id, from_user_uid, m_type, m_content)
         return struct.pack("B H I 16s I", self.version, 1003, 20, to_user_uid.bytes, message_id)
